@@ -3,12 +3,15 @@ package io.beansnapper.builder
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import javax.lang.model.element.AnnotationValue
-import javax.lang.model.element.TypeElement
+import javax.lang.model.element.Element
+
+val Element.kotlinMetadata get() = ReadKotlinMetaData.readFrom(this)
 
 object ReadKotlinMetaData {
+    private const val kotlinMetaData = "kotlin.Metadata"
 
-    fun readFrom(typeElement: TypeElement): KotlinClassMetadata? {
-        val kotlinAnnotation = typeElement.annotationMirrors
+    fun readFrom(element: Element): KotlinClassMetadata? {
+        val kotlinAnnotation = element.annotationMirrors
             .find { it.annotationType.toString() == kotlinMetaData }
             ?: throw Exception("Could not find Kotlin Meta Data")
 

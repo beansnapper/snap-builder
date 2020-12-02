@@ -3,24 +3,28 @@ package io.beansnapper.builder
 
 import com.squareup.kotlinpoet.*
 import io.beansnapper.annotations.SnapBuilder
-import io.beansnapper.builder.ReadKotlinMetaData.readFrom
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import java.io.File
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.PackageElement
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.tools.Diagnostic.Kind.ERROR
-
-const val kotlinMetaData = "kotlin.Metadata"
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes("io.beansnapper.annotations.SnapBuilder")
 @SupportedOptions("kapt.kotlin.generated")
 class BuilderAnnotationProcessor : AbstractProcessor() {
+    private val myAnnotation = SnapBuilder::class.qualifiedName!!
+
+    private fun printError(message: String) {
+        processingEnv.messager.printMessage(ERROR, message)
+    }
+
+    private fun printError(message: String, element: Element) {
+        processingEnv.messager.printMessage(ERROR, message, element)
+    }
+
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment): Boolean {
         System.err.println(">>>>>>>>>>>>>>>>>>>>> builder processor <<<<<<<<<<<<<<<<<<<<<<")
@@ -36,28 +40,28 @@ class BuilderAnnotationProcessor : AbstractProcessor() {
         System.err.println("GeneratedDir = $kaptKotlinGeneratedDir")
 
         for (element in annotatedElements) {
-            System.err.println("Annotated Element=$element")
-            if (element.kind == ElementKind.CLASS && element is TypeElement) {
-                val metadata: KotlinClassMetadata = readFrom(element) ?: continue
-                if (metadata is KotlinClassMetadata.Class) {
-                    val fileSpec = generateBuilder(element)
-                    fileSpec.writeTo(genDir)
-
-
-                    val kmClass: KmClass = metadata.toKmClass()
-                    System.err.println("kmClass=$kmClass   ${kmClass.name}")
-                    for (kmProperty in kmClass.properties) {
-                        System.err.println("kmProperty=${kmProperty.name}")
-                    }
-                }
-
+            val metadata: KotlinClassMetadata? = element.kotlinMetadata
+            if (element.kind == ElementKind.CLASS
+                && element is TypeElement
+                && metadata != null
+                && metadata is KotlinClassMetadata.Class
+            ) {
+                val fileSpec = generateBuilder(metadata.toKmClass(), element)
+                fileSpec.writeTo(genDir)
+            } else {
+                printError("$myAnnotation Annotation not applied to Kotlin Class", element)
             }
         }
         return true
     }
 
-    private fun generateBuilder(classMetadata: KotlinClassMetadata.Class, typeElement: TypeElement): FileSpec {
+    private fun generateBuilder(kmClass: KmClass, typeElement: TypeElement): FileSpec {
         System.err.println("typeElement=${typeElement::class.qualifiedName}")
+
+        System.err.println("kmClass=$kmClass   ${kmClass.name}")
+        for (kmProperty in kmClass.properties) {
+            System.err.println("kmProperty=${kmProperty.name}")
+        }
 
 
         val packageName = findPackageName(typeElement)
