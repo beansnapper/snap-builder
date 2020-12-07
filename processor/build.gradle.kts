@@ -14,7 +14,9 @@ tasks.withType<Test> {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.2.0")
-    implementation( "com.squareup:kotlinpoet:1.7.2")
+    implementation("com.squareup:kotlinpoet:1.7.2")
+    implementation("com.squareup:kotlinpoet-metadata:1.7.2")
+    implementation("com.squareup:kotlinpoet-metadata-specs:1.7.2")
     implementation("io.github.microutils:kotlin-logging:1.7.8")
     implementation(project(":annotation"))
 
