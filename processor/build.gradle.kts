@@ -1,11 +1,16 @@
 plugins {
     kotlin("jvm") version "1.4.20"
     kotlin("kapt") version "1.4.20"
+    `java-library`
+    `maven-publish`
 }
 
-group = "io.beansnapper.builder"
-version = "1.0-SNAPSHOT"
+group = "io.beansnapper"
+version = "0.0.1"
 
+tasks.withType<AbstractArchiveTask> {
+    setProperty("archiveBaseName", "snap-builder-kapt")
+}
 
 tasks.withType<Test> {
     useJUnitPlatform()

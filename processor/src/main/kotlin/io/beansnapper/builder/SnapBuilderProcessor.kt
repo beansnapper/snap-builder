@@ -76,7 +76,7 @@ class SnapBuilderProcessor : AbstractProcessor() {
         val paramNames = primaryConst.valueParameters.map { it.name }.toSet()
 
         val properties = params.map {
-            val builder = PropertySpec.builder(it.name, it.type)
+            val builder = PropertySpec.builder(it.name, it.type).mutable()
             if (paramNames.contains(it.name)) {
                 builder.initializer(it.name)
             }
@@ -84,6 +84,14 @@ class SnapBuilderProcessor : AbstractProcessor() {
         }
 
         return FileSpec.builder(packageName, genName)
+            .addFunction(
+                FunSpec.builder("toBuilder")
+                    .receiver(target)
+                    .addStatement(
+                        "return $genName(" + primaryConst.valueParameters.joinToString { it.name } + ")"
+                    )
+                    .build()
+            )
             .addType(
                 TypeSpec.classBuilder(genName)
                     .primaryConstructor(

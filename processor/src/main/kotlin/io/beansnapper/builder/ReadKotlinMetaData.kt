@@ -25,10 +25,10 @@ object ReadKotlinMetaData {
         var packageName: String? = null
         var extraInt: Int? = null
 
-        for ((element, wrappedValue) in kotlinAnnotation.elementValues) {
+        for ((e, wrappedValue) in kotlinAnnotation.elementValues) {
             val value = unwrapAnnotationValue(wrappedValue)
             @Suppress("UNCHECKED_CAST")
-            when (element.simpleName.toString()) {
+            when (e.simpleName.toString()) {
                 "k" -> kind = value as? Int
                 "mv" -> metadataVersion = (value as? List<Int>)?.toIntArray()
                 "bv" -> bytecodeVersion = (value as? List<Int>)?.toIntArray()
